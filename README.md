@@ -41,11 +41,11 @@ The output is two Word documents:
 
 ## Usage
 
-Place your raw labels into raw_labels.docx, one per line (a prefilled sample raw_labels.docx is available in the repository)
+Place your raw labels into sample - Input.docx, one label followed by description on individual lines (a prefilled sample sample - Input.docx is available in the repository)
 
 Prepare GroundTruth.docx with a table, the first column (with a header of "Ground Truth") having all the base labels, and a blank second column (with a header of "Found/Not Found"). There is also a sample GroundTruth.docx within the repository.
 
-Run the script. The script will:
+Run either scripts, with or without unknowns. The script will:
 
 - Train the SVM model on your Excel dataset.
 
