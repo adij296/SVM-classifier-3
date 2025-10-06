@@ -3,29 +3,29 @@ from sklearn.svm import SVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from docx import Document
 
-# ====== CONFIG ======
-TRAINING_EXCEL = r"C:\Users\adij2\Downloads\clean_full_training_dataset.xlsx"
-INPUT_DOCX = r"C:\Users\adij2\Downloads\sample - Input.docx"
-OUTPUT_DOCX = r"C:\Users\adij2\Downloads\ProcessedLabels.docx"
-GT_DOCX = "C:\\Users\\adij2\\Downloads\\GroundTruth.docx"
+#Document Pathways
+TRAINING_EXCEL = "clean_full_training_dataset.xlsx"
+INPUT_DOCX = "sample - Input.docx"
+OUTPUT_DOCX = "ProcessedLabels.docx"
+GT_DOCX = "GroundTruth.docx"
 
-# ====== Load training data ======
+#Load training data
 data = pd.read_excel(TRAINING_EXCEL)
 X_train_text = (data['raw_label'].astype(str) + " " + data['description'].astype(str))
 y_train = data['canonical_label'].astype(str)
 
-# ====== Train TF-IDF vectorizer + SVM ======
+#Train TF-IDF vectorizer and SVM
 vectorizer = TfidfVectorizer(analyzer='char_wb', ngram_range=(2, 4))
 X_train_tfidf = vectorizer.fit_transform(X_train_text)
 
 model = SVC(kernel='rbf', C=1.0, gamma='scale', probability=True)
 model.fit(X_train_tfidf, y_train)
 
-# ====== Load input Word doc ======
+#Load input Word doc
 raw_doc = Document(INPUT_DOCX)
 all_lines = [p.text.rstrip() for p in raw_doc.paragraphs if p.text.strip() != ""]
 
-# ====== Process lines: alternate raw_label and description ======
+#Process lines: alternate raw_label and description
 output_lines = []
 i = 0
 while i < len(all_lines):
@@ -43,7 +43,7 @@ while i < len(all_lines):
 
     i += 2  # move to next raw_label/description pair
 
-# ====== Save processed doc ======
+#Save processed doc
 processed_doc = Document()
 for ln in output_lines:
     processed_doc.add_paragraph(ln)
