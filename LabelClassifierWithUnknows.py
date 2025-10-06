@@ -5,24 +5,24 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from docx import Document
 
-# ====== CONFIG ======
-TRAINING_EXCEL = r"C:\Users\adij2\Downloads\clean_full_training_dataset.xlsx"
-INPUT_DOCX = r"C:\Users\adij2\Downloads\sample - Input.docx"
-OUTPUT_DOCX = r"C:\Users\adij2\Downloads\ProcessedLabels.docx"
-GT_DOCX = "C:\\Users\\adij2\\Downloads\\GroundTruth.docx"
-UNKNOWN_PERCENTILE = 20  # bottom X% confidence will be UNKNOWN_LABEL
+#Document Pathways
+TRAINING_EXCEL = "clean_full_training_dataset.xlsx"
+INPUT_DOCX = "sample - Input.docx"
+OUTPUT_DOCX = "ProcessedLabels.docx"
+GT_DOCX = "GroundTruth.docx"
+UNKNOWN_PERCENTILE = 20  
 
-# ====== Load training data ======
+#Load training data
 data = pd.read_excel(TRAINING_EXCEL)
 X_text = (data['raw_label'].astype(str) + " " + data['description'].astype(str))
 y = data['canonical_label'].astype(str)
 
-# ====== Split for threshold calibration ======
+#Split for threshold calibration
 X_train_text, X_val_text, y_train, y_val = train_test_split(
     X_text, y, test_size=0.2, stratify=y, random_state=42
 )
 
-# ====== Train TF-IDF vectorizer + SVM ======
+#Train TF-IDF vectorizer + SVM
 vectorizer = TfidfVectorizer(analyzer='char_wb', ngram_range=(2, 4))
 X_train_tfidf = vectorizer.fit_transform(X_train_text)
 X_val_tfidf = vectorizer.transform(X_val_text)
@@ -30,19 +30,19 @@ X_val_tfidf = vectorizer.transform(X_val_text)
 model = SVC(kernel='rbf', C=1.0, gamma='scale', probability=True)
 model.fit(X_train_tfidf, y_train)
 
-# ====== Compute validation max probabilities ======
+# Compute validation max probabilities
 val_probs = model.predict_proba(X_val_tfidf)
 val_max = val_probs.max(axis=1)
 
-# ====== Set percentile-based threshold ======
+#Set percentile-based threshold 
 PROB_THRESHOLD = np.percentile(val_max, UNKNOWN_PERCENTILE)
 print(f"Using probability threshold = {PROB_THRESHOLD:.2f}")
 
-# ====== Load input Word doc ======
+#Load input Word doc
 raw_doc = Document(INPUT_DOCX)
 all_lines = [p.text.rstrip() for p in raw_doc.paragraphs if p.text.strip() != ""]
 
-# ====== Process lines: alternate raw_label and description ======
+#Process lines: alternate raw_label and description
 output_lines = []
 i = 0
 while i < len(all_lines):
@@ -66,7 +66,7 @@ while i < len(all_lines):
 
     i += 2  # move to next raw_label/description pair
 
-# ====== Save processed doc ======
+#Save processed doc
 processed_doc = Document()
 for ln in output_lines:
     processed_doc.add_paragraph(ln)
